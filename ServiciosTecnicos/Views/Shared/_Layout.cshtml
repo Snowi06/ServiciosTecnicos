@@ -10,22 +10,31 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ServiciosTecnicos</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+        <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm py-3">
+            <div class="container">
+
+                <a class="navbar-brand fw-bold fs-3 text-primary" asp-controller="Home" asp-action="Index">
+                    ServiciosTécnicos
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+
+                <div class="collapse navbar-collapse" id="menuPrincipal">
+
+                    <div class="d-flex gap-2 ms-auto">
+                        <a asp-controller="Login" asp-action="Index"
+                           class="btn btn-outline-secondary rounded-pill px-4">
+                            Login
+                        </a>
+
+                        <a asp-controller="Solicitudes" asp-action="Crear"
+                           class="btn btn-primary rounded-pill px-4">
+                            Nueva solicitud
+                        </a>
+                    </div>
+
                 </div>
             </div>
         </nav>

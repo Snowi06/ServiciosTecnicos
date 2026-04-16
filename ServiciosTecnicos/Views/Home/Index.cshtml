@@ -1,8 +1,180 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<div class="container mt-5">
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold">Sistema de Servicios Técnicos</h1>
+        <p class="text-muted">
+            Plataforma para gestionar servicios técnicos a domicilio
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- SOLICITUDES -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="me-3">
+                        <img src="~/Imagenes/Soliitudes.png"
+                             alt="Solicitudes"
+                             width="60">
+                    </div>
+
+                    <div>
+                        <h3 class="fw-bold mb-1">
+                            Solicitudes
+                        </h3>
+
+                        <p class="text-muted mb-0">
+                            Gestión de solicitudes de servicio
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="card-footer bg-white border-0 pb-4">
+
+                    <a asp-controller="Solicitudes"
+                       asp-action="Index"
+                       class="btn btn-primary px-4">
+
+                        Ir a solicitudes
+
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+
+
+        <!-- TECNICOS -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="me-3">
+                        <img src="~/Imagenes/Tecnicos.png"
+                             alt="Técnicos"
+                             width="60">
+                    </div>
+
+                    <div>
+                        <h3 class="fw-bold mb-1">
+                            Técnicos
+                        </h3>
+
+                        <p class="text-muted mb-0">
+                            Gestión de técnicos del sistema
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="card-footer bg-white border-0 pb-4">
+
+                    <a asp-controller="Tecnicos"
+                       asp-action="Index"
+                       class="btn btn-secondary px-4">
+
+                        Ver módulo
+
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+
+
+        <!-- HISTORIAL -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="me-3">
+                        <img src="~/Imagenes/Historial.png"
+                             alt="Historial"
+                             width="60">
+                    </div>
+
+                    <div>
+                        <h3 class="fw-bold mb-1">
+                            Historial
+                        </h3>
+
+                        <p class="text-muted mb-0">
+                            Consulta el historial de servicios realizados
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="card-footer bg-white border-0 pb-4">
+
+                    <a asp-controller="Historial"
+                       asp-action="Index"
+                       class="btn btn-secondary px-4">
+
+                        Ver módulo
+
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+
+
+        <!-- CALIFICACIONES -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="me-3">
+                        <img src="~/Imagenes/Calificaciones.png"
+                             alt="Calificaciones"
+                             width="60">
+                    </div>
+
+                    <div>
+                        <h3 class="fw-bold mb-1">
+                            Calificaciones
+                        </h3>
+
+                        <p class="text-muted mb-0">
+                            Evaluación de servicios por clientes
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="card-footer bg-white border-0 pb-4">
+
+                    <a asp-controller="Calificaciones"
+                       asp-action="Index"
+                       class="btn btn-secondary px-4">
+
+                        Ver módulo
+
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>>
