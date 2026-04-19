@@ -1,41 +1,37 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServiciosTecnicos.Models; 
 
 namespace ServiciosTecnicos.Controllers
 {
     public class SolicitudesController : Controller
     {
-        private static Queue<Solicitud> ColaSolicitudes = new Queue<Solicitud>();
-
         public IActionResult Index()
         {
-            return View(ColaSolicitudes);
+            return RedirectToAction("Index", "ServiceRequests");
         }
 
-        public IActionResult Create()
+        public IActionResult Crear()
         {
-            return View();
+            return RedirectToAction("Create", "ServiceRequests");
         }
 
-        [HttpPost]
-        public IActionResult Create(Solicitud solicitud)
+        public IActionResult Detalles(int id)
         {
-            solicitud.Fecha = DateTime.Now;
-            solicitud.Estado = "Pendiente";
-
-            ColaSolicitudes.Enqueue(solicitud);
-
-            return RedirectToAction("Index");
+            return RedirectToAction("Details", "ServiceRequests", new { id });
         }
 
-        public IActionResult Atender()
+        public IActionResult Editar(int id)
         {
-            if (ColaSolicitudes.Count > 0)
-            {
-                ColaSolicitudes.Dequeue();
-            }
-            return RedirectToAction("Index");
+            return RedirectToAction("Edit", "ServiceRequests", new { id });
         }
 
+        public IActionResult Eliminar(int id)
+        {
+            return RedirectToAction("Delete", "ServiceRequests", new { id });
+        }
+
+        public IActionResult AtenderSiguiente()
+        {
+            return RedirectToAction("AttendNext", "ServiceRequests");
+        }
     }
 }

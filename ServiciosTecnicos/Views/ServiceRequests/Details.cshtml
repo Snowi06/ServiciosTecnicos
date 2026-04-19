@@ -1,0 +1,113 @@
+@model ServiciosTecnicos.Models.ServiceRequest
+
+@{
+    ViewData["Title"] = "Detalles de Solicitud";
+}
+
+<h2>Detalles de Solicitud</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <dl class="row">
+            <dt class="col-sm-4">ID Solicitud</dt>
+            <dd class="col-sm-8">@Model.RequestId</dd>
+
+            <dt class="col-sm-4">Cliente</dt>
+            <dd class="col-sm-8">@Model.Client?.User?.FirstName @Model.Client?.User?.LastName</dd>
+
+            <dt class="col-sm-4">Email</dt>
+            <dd class="col-sm-8">@Model.Client?.User?.Email</dd>
+
+            <dt class="col-sm-4">Teléfono</dt>
+            <dd class="col-sm-8">@Model.Client?.User?.Phone</dd>
+
+            <dt class="col-sm-4">Categoría</dt>
+            <dd class="col-sm-8">@Model.Category?.CategoryName</dd>
+
+            <dt class="col-sm-4">Título</dt>
+            <dd class="col-sm-8">@Model.Title</dd>
+
+            <dt class="col-sm-4">Descripción</dt>
+            <dd class="col-sm-8">@Model.Description</dd>
+
+            <dt class="col-sm-4">Dirección</dt>
+            <dd class="col-sm-8">@Model.Address</dd>
+
+            <dt class="col-sm-4">Estado</dt>
+            <dd class="col-sm-8">
+                <span class="badge bg-@(Model.RequestStatus == "pending" ? "warning" : Model.RequestStatus == "assigned" ? "info" : Model.RequestStatus == "in_progress" ? "primary" : Model.RequestStatus == "completed" ? "success" : "danger")">
+                    @(Model.RequestStatus == "pending" ? "Pendiente" : 
+                      Model.RequestStatus == "assigned" ? "Asignado" : 
+                      Model.RequestStatus == "in_progress" ? "En Progreso" : 
+                      Model.RequestStatus == "completed" ? "Completado" : "Cancelado")
+                </span>
+            </dd>
+
+            <dt class="col-sm-4">Fecha de Creación</dt>
+            <dd class="col-sm-8">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            @if (Model.RequestAssignment != null)
+            {
+                <dt class="col-sm-4">Técnico Asignado</dt>
+                <dd class="col-sm-8">
+                    @Model.RequestAssignment.Technician?.User?.FirstName @Model.RequestAssignment.Technician?.User?.LastName
+                    <br />
+                    <small class="text-muted">Asignado: @Model.RequestAssignment.AssignedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                </dd>
+            }
+        </dl>
+
+        @* Sección para asignar técnico si está pendiente *@
+        @if (Model.RequestStatus == "pending" && Model.RequestAssignment == null)
+        {
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Asignar Técnico</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AssignTechnician" method="post">
+                        <input type="hidden" name="requestId" value="@Model.RequestId" />
+                        
+                        <div class="mb-3">
+                            <label for="technicianId" class="form-label">Seleccione un Técnico Disponible</label>
+                            <select name="technicianId" id="technicianId" class="form-select" required>
+                                <option value="">-- Seleccione un técnico --</option>
+                                @if (ViewBag.AvailableTechnicians != null)
+                                {
+                                    @foreach (var tech in (SelectList)ViewBag.AvailableTechnicians)
+                                    {
+                                        <option value="@tech.Value">@tech.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-person-check"></i> Asignar Técnico
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        @* Botón para iniciar servicio si está asignado *@
+        @if (Model.RequestStatus == "assigned" && Model.Service == null)
+        {
+            <div class="alert alert-info mt-4">
+                <h5>Solicitud Asignada</h5>
+                <p>Esta solicitud ha sido asignada al técnico. ¿Desea iniciar el servicio?</p>
+                <form asp-action="StartService" method="post" class="d-inline">
+                    <input type="hidden" name="requestId" value="@Model.RequestId" />
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-play-circle"></i> Iniciar Servicio
+                    </button>
+                </form>
+            </div>
+        }
+
+        <div class="mt-4">
+            <a asp-action="Edit" asp-route-id="@Model.RequestId" class="btn btn-warning">Editar</a>
+            <a asp-action="Index" class="btn btn-secondary">Volver a la lista</a>
+        </div>
+    </div>
+</div>

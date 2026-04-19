@@ -1,0 +1,39 @@
+@model ServiciosTecnicos.Models.ServiceRequest
+
+@{
+    ViewData["Title"] = "Eliminar Solicitud";
+}
+
+<div class="container mt-4">
+    <h1>Eliminar Solicitud</h1>
+    <hr />
+
+    <h3 class="text-danger">¿Está seguro que desea eliminar esta solicitud?</h3>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <dl class="row">
+                <dt class="col-sm-3">Cliente</dt>
+                <dd class="col-sm-9">@Model.Client.User.FirstName @Model.Client.User.LastName</dd>
+
+                <dt class="col-sm-3">Categoría</dt>
+                <dd class="col-sm-9">@Model.Category.CategoryName</dd>
+
+                <dt class="col-sm-3">Título</dt>
+                <dd class="col-sm-9">@Model.Title</dd>
+
+                <dt class="col-sm-3">Descripción</dt>
+                <dd class="col-sm-9">@Model.Description</dd>
+
+                <dt class="col-sm-3">Fecha</dt>
+                <dd class="col-sm-9">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+            </dl>
+
+            <form asp-action="Delete">
+                <input type="hidden" asp-for="RequestId" />
+                <button type="submit" class="btn btn-danger">Eliminar</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
