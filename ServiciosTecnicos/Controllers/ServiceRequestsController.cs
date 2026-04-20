@@ -247,11 +247,26 @@ namespace ServiciosTecnicos.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var serviceRequest = await _context.ServiceRequests.FindAsync(id);
+            var serviceRequest = await _context.ServiceRequests
+                .Include(s => s.RequestAssignment)
+                .Include(s => s.Service)
+                .FirstOrDefaultAsync(s => s.RequestId == id);
+
             if (serviceRequest != null)
             {
+                if (serviceRequest.Service != null)
+                {
+                    _context.Services.Remove(serviceRequest.Service);
+                }
+
+                if (serviceRequest.RequestAssignment != null)
+                {
+                    _context.RequestAssignments.Remove(serviceRequest.RequestAssignment);
+                }
+
                 _context.ServiceRequests.Remove(serviceRequest);
                 await _context.SaveChangesAsync();
+
                 TempData["Success"] = "Solicitud eliminada exitosamente";
             }
 
