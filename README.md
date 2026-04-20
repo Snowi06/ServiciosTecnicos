@@ -35,6 +35,7 @@ servicios_tecnicos_db
 4. Configurar la cadena de conexión en el archivo:
 
    La conexion ya esta establecidad para que funcione al clonar el repositorio, si en caso esta fallara en el proyecto se direje al apartado de la solucion y buscara "appsettings.json",
+   
 luego de haberlo encontrado, encontrara esto:
 "Server=localhost;Database=servicios_tecnicos_db;Trusted_Connection=True;TrustServerCertificate=True;"
 
