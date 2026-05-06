@@ -1,0 +1,169 @@
+@model ServiceRequest[]
+
+@{
+    ViewData["Title"] = "Cola de Atención";
+}
+
+<style>
+    .queue-card {
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        border: none;
+        margin-bottom: 20px;
+    }
+
+    .queue-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .queue-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 25px;
+    }
+
+    .queue-position {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .fifo-arrow {
+        font-size: 48px;
+        color: #667eea;
+        text-align: center;
+        margin: 20px 0;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="card queue-card">
+        <div class="queue-header">
+            <h2 class="mb-0">
+                <i class="bi bi-list-ol"></i> Estado de la Cola FIFO
+            </h2>
+            <p class="mb-0 opacity-75">
+                Sistema de atención por orden de llegada usando TAD CustomQueue
+            </p>
+        </div>
+
+        <div class="card-body p-4">
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle"></i> Principio FIFO (First In, First Out)</h5>
+                <p class="mb-0">
+                    Las solicitudes se atienden en el orden en que fueron creadas. 
+                    La primera solicitud en entrar es la primera en salir.
+                </p>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h3 class="display-4">@ViewBag.QueueCount</h3>
+                            <p class="mb-0">Solicitudes en Cola</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h3 class="display-4">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                            </h3>
+                            <p class="mb-0">Sistema Eficiente</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Length > 0)
+            {
+                <h4 class="mb-4">
+                    <i class="bi bi-arrow-right-circle"></i> Orden de Atención
+                </h4>
+
+                @for (int i = 0; i < Model.Length; i++)
+                {
+                    var request = Model[i];
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-1">
+                                    <div class="queue-position">
+                                        @(i + 1)
+                                    </div>
+                                </div>
+                                <div class="col-md-7">
+                                    <h5 class="mb-1">
+                                        @if (i == 0)
+                                        {
+                                            <span class="badge bg-danger">SIGUIENTE</span>
+                                        }
+                                        #@request.RequestId - @request.Title
+                                    </h5>
+                                    <p class="mb-0 text-muted">
+                                        <i class="bi bi-person"></i> @request.Client?.User?.FirstName @request.Client?.User?.LastName |
+                                        <i class="bi bi-tag"></i> @request.Category?.CategoryName |
+                                        <i class="bi bi-clock"></i> @request.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </p>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <a asp-action="Details" asp-route-id="@request.RequestId" 
+                                       class="btn btn-primary">
+                                        <i class="bi bi-eye"></i> Ver Detalles
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (i < Model.Length - 1)
+                    {
+                        <div class="fifo-arrow">
+                            <i class="bi bi-arrow-down"></i>
+                        </div>
+                    }
+                }
+
+                <div class="text-center mt-4">
+                    <form asp-action="AttendNext" method="get">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-play-circle"></i> Atender Siguiente (Dequeue)
+                        </button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 64px; color: #ccc;"></i>
+                    <h4 class="mt-3 text-muted">Cola Vacía</h4>
+                    <p class="text-muted">No hay solicitudes pendientes en la cola de atención</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Crear Nueva Solicitud
+                    </a>
+                </div>
+            }
+
+            <div class="mt-4 d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver a Lista
+                </a>
+                <a asp-action="ViewHistory" class="btn btn-info">
+                    <i class="bi bi-clock-history"></i> Ver Historial
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,122 @@
+@model string[]
+
+@{
+    ViewData["Title"] = "Historial de Operaciones";
+}
+
+<style>
+    .history-card {
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: none;
+    }
+
+    .history-header {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 25px;
+    }
+
+    .history-item {
+        padding: 15px;
+        border-left: 4px solid #43e97b;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .history-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+
+    .stack-visualization {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="card history-card">
+        <div class="history-header">
+            <h2 class="mb-0">
+                <i class="bi bi-clock-history"></i> Historial de Actividad
+            </h2>
+            <p class="mb-0 opacity-75">
+                Registro de todas las operaciones del sistema
+            </p>
+        </div>
+
+        <div class="card-body p-4">
+            <div class="alert alert-success">
+                <h5><i class="bi bi-info-circle"></i> Registro de Actividad</h5>
+                <p class="mb-0">
+                    Aquí puedes ver todas las acciones realizadas en el sistema.
+                    Las operaciones más recientes aparecen primero.
+                </p>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h3 class="display-4">@ViewBag.HistoryCount</h3>
+                            <p class="mb-0">Operaciones Registradas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Length > 0)
+            {
+                <h4 class="mb-3">
+                    <i class="bi bi-list-task"></i> Últimas Operaciones
+                </h4>
+
+                @for (int i = 0; i < Model.Length; i++)
+                {
+                    <div class="history-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-primary">@(Model.Length - i)</span>
+                                <strong class="ms-2">@Model[i]</strong>
+                            </div>
+                            <div>
+                                @if (i == 0)
+                                {
+                                    <span class="badge bg-danger">MÁS RECIENTE</span>
+                                }
+                                else if (i == Model.Length - 1)
+                                {
+                                    <span class="badge bg-secondary">MÁS ANTIGUA</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 64px; color: #ccc;"></i>
+                    <h4 class="mt-3 text-muted">No hay operaciones registradas</h4>
+                    <p class="text-muted">El historial está vacío</p>
+                </div>
+            }
+
+            <div class="mt-4 d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver a Lista
+                </a>
+                <a asp-action="QueueStatus" class="btn btn-primary">
+                    <i class="bi bi-list-ol"></i> Ver Estado de Cola
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

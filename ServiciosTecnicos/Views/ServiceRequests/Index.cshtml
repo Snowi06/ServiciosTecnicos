@@ -4,12 +4,32 @@
     ViewData["Title"] = "Solicitudes";
 }
 
-<div class="container mt-4">
-    <h1>Solicitudes</h1>
+<style>
+    .tad-info-card {
+        border-radius: 12px;
+        border: 2px solid #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+</style>
 
-    <div class="mb-3">
-        <a asp-action="Create" class="btn btn-success">Nueva solicitud</a>
-        <a asp-action="AttendNext" class="btn btn-danger">Atender siguiente</a>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-list-task"></i> Solicitudes</h1>
+        <div>
+            <span class="badge bg-primary fs-6">@ViewBag.TotalRequests Total</span>
+            <span class="badge bg-warning fs-6">@ViewBag.PendingInQueue En Cola</span>
+        </div>
+    </div>
+
+    <div class="mb-3 d-flex gap-2">
+        <a asp-action="Create" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Nueva solicitud
+        </a>
+        <a asp-action="AttendNext" class="btn btn-danger">
+            <i class="bi bi-play-circle"></i> Atender siguiente
+        </a>
     </div>
 
     @if (TempData["Success"] != null)
