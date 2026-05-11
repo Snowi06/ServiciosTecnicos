@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ServiciosTecnicos.Filters;
+
 
 namespace ServiciosTecnicos.Controllers
 {
+    [AuthorizeSession("admin", "client")]
+
     public class SolicitudesController : Controller
     {
         public IActionResult Index()

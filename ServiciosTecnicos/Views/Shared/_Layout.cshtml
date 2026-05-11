@@ -10,34 +10,42 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm py-3">
+        <nav class="navbar navbar-expand-lg border-bottom shadow-sm py-3" style="background:#087ca7;">
             <div class="container">
 
-                <a class="navbar-brand fw-bold fs-3 text-primary" asp-controller="Home" asp-action="Index">
+                <a class="navbar-brand fw-bold fs-3 text-white" asp-controller="Home" asp-action="Index">
                     ServiciosTécnicos
                 </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                <div class="ms-auto d-flex align-items-center gap-3">
 
-                <div class="collapse navbar-collapse" id="menuPrincipal">
+                    @if (Context.Session.GetInt32("UserId") == null)
+                    {
+                        <span class="text-white fw-semibold small">
+                            Usted no se ha identificado.
+                        </span>
 
-                    <div class="d-flex gap-2 ms-auto">
-                        <a asp-controller="ServiceRequests" asp-action="Index"
-                           class="btn btn-outline-secondary rounded-pill px-4">
-                            Solicitudes
+                        <a asp-controller="Login" asp-action="Index"
+                           class="btn btn-light rounded-pill px-4">
+                            Login
                         </a>
+                    }
+                    else
+                    {
+                        <span class="text-white fw-semibold small">
+                            @Context.Session.GetString("UserName") (@Context.Session.GetString("Role"))
+                        </span>
 
-                        <a asp-controller="Solicitudes" asp-action="Create"
-                           class="btn btn-primary rounded-pill px-4">
-                            Nueva solicitud
+                        <a asp-controller="Login" asp-action="Logout"
+                           class="btn btn-outline-light rounded-pill px-4">
+                            Salir
                         </a>
-                    </div>
+                    }
 
                 </div>
             </div>
         </nav>
+
     </header>
     <div class="container">
         <main role="main" class="pb-3">

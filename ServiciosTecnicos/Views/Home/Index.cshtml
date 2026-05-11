@@ -1,5 +1,13 @@
 ﻿@{
     ViewData["Title"] = "Inicio";
+
+    var role = Context.Session.GetString("Role");
+    var isLoggedIn = Context.Session.GetInt32("UserId") != null;
+
+    var canUseSolicitudes = isLoggedIn && (role == "admin" || role == "client");
+    var canUseTecnicos = isLoggedIn && (role == "admin" || role == "technician");
+    var canUseHistorial = isLoggedIn && (role == "admin" || role == "technician");
+    var canUseCalificaciones = isLoggedIn && (role == "admin" || role == "client");
 }
 
 <div class="container mt-5">
@@ -11,170 +19,135 @@
         </p>
     </div>
 
+    @if (!isLoggedIn)
+    {
+        <div class="alert alert-warning text-center">
+            Debes iniciar sesión para acceder a los módulos del sistema.
+        </div>
+    }
+
     <div class="row g-4">
 
-        <!-- SOLICITUDES -->
         <div class="col-md-6">
             <div class="card shadow-sm border-0 rounded-4 h-100">
-
                 <div class="card-body d-flex align-items-center">
-
                     <div class="me-3">
-                        <img src="~/Imagenes/Soliitudes.png"
-                             alt="Solicitudes"
-                             width="60">
+                        <img src="~/Imagenes/Soliitudes.png" alt="Solicitudes" width="60">
                     </div>
 
                     <div>
-                        <h3 class="fw-bold mb-1">
-                            Solicitudes
-                        </h3>
-
-                        <p class="text-muted mb-0">
-                            Gestión de solicitudes de servicio
-                        </p>
+                        <h3 class="fw-bold mb-1">Solicitudes</h3>
+                        <p class="text-muted mb-0">Gestión de solicitudes de servicio</p>
                     </div>
-
                 </div>
 
                 <div class="card-footer bg-white border-0 pb-4">
-
-                    <a asp-controller="Solicitudes"
-                       asp-action="Index"
-                       class="btn btn-primary px-4">
-
-                        Ir a solicitudes
-
-                    </a>
-
+                    @if (canUseSolicitudes)
+                    {
+                        <a asp-controller="Solicitudes" asp-action="Index" class="btn btn-primary px-4">
+                            Ir a solicitudes
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary px-4" disabled>
+                            Bloqueado
+                        </button>
+                    }
                 </div>
-
             </div>
         </div>
 
-
-
-        <!-- TECNICOS -->
         <div class="col-md-6">
             <div class="card shadow-sm border-0 rounded-4 h-100">
-
                 <div class="card-body d-flex align-items-center">
-
                     <div class="me-3">
-                        <img src="~/Imagenes/Tecnicos.png"
-                             alt="Técnicos"
-                             width="60">
+                        <img src="~/Imagenes/Tecnicos.png" alt="Técnicos" width="60">
                     </div>
 
                     <div>
-                        <h3 class="fw-bold mb-1">
-                            Técnicos
-                        </h3>
-
-                        <p class="text-muted mb-0">
-                            Gestión de técnicos del sistema
-                        </p>
+                        <h3 class="fw-bold mb-1">Técnicos</h3>
+                        <p class="text-muted mb-0">Gestión de técnicos del sistema</p>
                     </div>
-
                 </div>
 
                 <div class="card-footer bg-white border-0 pb-4">
-
-                    <a asp-controller="Tecnicos"
-                       asp-action="Index"
-                       class="btn btn-secondary px-4">
-
-                        Ver módulo
-
-                    </a>
-
+                    @if (canUseTecnicos)
+                    {
+                        <a asp-controller="Tecnicos" asp-action="Index" class="btn btn-primary px-4">
+                            Ver módulo
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary px-4" disabled>
+                            Bloqueado
+                        </button>
+                    }
                 </div>
-
             </div>
         </div>
 
-
-
-        <!-- HISTORIAL -->
         <div class="col-md-6">
             <div class="card shadow-sm border-0 rounded-4 h-100">
-
                 <div class="card-body d-flex align-items-center">
-
                     <div class="me-3">
-                        <img src="~/Imagenes/Historial.png"
-                             alt="Historial"
-                             width="60">
+                        <img src="~/Imagenes/Historial.png" alt="Historial" width="60">
                     </div>
 
                     <div>
-                        <h3 class="fw-bold mb-1">
-                            Historial
-                        </h3>
-
-                        <p class="text-muted mb-0">
-                            Consulta el historial de servicios realizados
-                        </p>
+                        <h3 class="fw-bold mb-1">Historial</h3>
+                        <p class="text-muted mb-0">Consulta el historial de servicios realizados</p>
                     </div>
-
                 </div>
 
                 <div class="card-footer bg-white border-0 pb-4">
-
-                    <a asp-controller="Historial"
-                       asp-action="Index"
-                       class="btn btn-secondary px-4">
-
-                        Ver módulo
-
-                    </a>
-
+                    @if (canUseHistorial)
+                    {
+                        <a asp-controller="Historial" asp-action="Index" class="btn btn-primary px-4">
+                            Ver módulo
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary px-4" disabled>
+                            Bloqueado
+                        </button>
+                    }
                 </div>
-
             </div>
         </div>
 
-
-
-        <!-- CALIFICACIONES -->
         <div class="col-md-6">
             <div class="card shadow-sm border-0 rounded-4 h-100">
-
                 <div class="card-body d-flex align-items-center">
-
                     <div class="me-3">
-                        <img src="~/Imagenes/Calificaciones.png"
-                             alt="Calificaciones"
-                             width="60">
+                        <img src="~/Imagenes/Calificaciones.png" alt="Calificaciones" width="60">
                     </div>
 
                     <div>
-                        <h3 class="fw-bold mb-1">
-                            Calificaciones
-                        </h3>
-
-                        <p class="text-muted mb-0">
-                            Evaluación de servicios por clientes
-                        </p>
+                        <h3 class="fw-bold mb-1">Calificaciones</h3>
+                        <p class="text-muted mb-0">Evaluación de servicios por clientes</p>
                     </div>
-
                 </div>
 
                 <div class="card-footer bg-white border-0 pb-4">
-
-                    <a asp-controller="Calificaciones"
-                       asp-action="Index"
-                       class="btn btn-secondary px-4">
-
-                        Ver módulo
-
-                    </a>
-
+                    @if (canUseCalificaciones)
+                    {
+                        <a asp-controller="Calificaciones" asp-action="Index" class="btn btn-primary px-4">
+                            Ver módulo
+                        </a>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary px-4" disabled>
+                            Bloqueado
+                        </button>
+                    }
                 </div>
-
             </div>
         </div>
 
     </div>
 
-</div>>
+</div>

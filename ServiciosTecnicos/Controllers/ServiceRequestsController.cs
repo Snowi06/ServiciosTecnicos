@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using ServiciosTecnicos.Data;
 using ServiciosTecnicos.Models;
 using ServiciosTecnicos.DataStructures;
+using ServiciosTecnicos.Filters;
+
+
 
 namespace ServiciosTecnicos.Controllers
 {
@@ -11,6 +14,9 @@ namespace ServiciosTecnicos.Controllers
     /// Controlador de Solicitudes que utiliza TADs personalizadas
     /// NO usa List, Queue, Stack nativos de C#
     /// </summary>
+
+    [AuthorizeSession("admin", "client")]
+
     public class ServiceRequestsController : Controller
     {
         private readonly ApplicationDbContext _context;
