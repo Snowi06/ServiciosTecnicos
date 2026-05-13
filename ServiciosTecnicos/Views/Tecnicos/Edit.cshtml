@@ -1,0 +1,44 @@
+﻿@model ServiciosTecnicos.Models.Technician
+
+@{
+    ViewData["Title"] = "Editar Técnico";
+}
+
+<h1>Editar Técnico</h1>
+
+<form method="post">
+
+    <input asp-for="TechnicianId" type="hidden" />
+
+    <div class="mb-3">
+        <label>ID Usuario</label>
+        <input asp-for="UserId" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Años de experiencia</label>
+        <input asp-for="ExperienceYears" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Calificación promedio</label>
+        <input asp-for="AverageRating" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Disponible</label>
+        <select asp-for="Available" class="form-control">
+            <option value="true">Sí</option>
+            <option value="false">No</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Guardar cambios
+    </button>
+
+    <a href="/Tecnicos" class="btn btn-secondary">
+        Volver
+    </a>
+
+</form>

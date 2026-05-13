@@ -1,21 +1,49 @@
-﻿@{
+﻿@model List<ServiciosTecnicos.Models.Technician>
+
+@{
     ViewData["Title"] = "Técnicos";
 }
 
-<div class="container mt-5">
+<h1>Listado de Técnicos</h1>
 
-    <h2>Técnicos</h2>
+<a href="/Tecnicos/Create" class="btn btn-success mb-3">
+    Nuevo Técnico
+</a>
 
-    <div class="card p-4 shadow-sm">
+<table class="table table-bordered">
 
-        <p>
-            Aquí se mostrará la gestión de técnicos.
-        </p>
+    <tr>
+        <th>ID</th>
+        <th>User ID</th>
+        <th>Experiencia</th>
+        <th>Calificación</th>
+        <th>Disponible</th>
+        <th>Acciones</th>
+    </tr>
 
-        <p class="text-muted">
-            Próximamente disponible.
-        </p>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.TechnicianId</td>
+            <td>@item.UserId</td>
+            <td>@item.ExperienceYears años</td>
+            <td>@item.AverageRating</td>
+            <td>
+                @(item.Available ? "Sí" : "No")
+            </td>
 
-    </div>
+            <td>
+                <a href="/Tecnicos/Edit/@item.TechnicianId"
+                       class="btn btn-warning btn-sm">
+                    Editar
+                </a>
 
-</div>
+                <a href="/Tecnicos/Delete/@item.TechnicianId"
+                       class="btn btn-danger btn-sm">
+                    Eliminar
+                </a>
+            </td>
+        </tr>
+    }
+
+</table>
