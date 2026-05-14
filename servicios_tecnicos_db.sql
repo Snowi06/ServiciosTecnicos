@@ -398,5 +398,20 @@ VALUES (2, 'Daniela', 'Flores', 'daniela.flores@email.com', 'hash123', '7000-001
 INSERT INTO clients (user_id, address, city)
 VALUES (SCOPE_IDENTITY(), 'Santa Tecla', 'La Libertad');
 
+-- =========================
+-- Admin 1
+-- =========================
+
+INSERT INTO users (role_id, first_name, last_name, email, password_hash, phone, is_active)
+VALUES (
+    (SELECT role_id FROM roles WHERE role_name = 'admin'),
+    'Admin',
+    'Sistema',
+    'admin@email.com',
+    'hash123',
+    '5555-0000',
+    1
+)
+
 --Para saber el nombre de tu servior de sql server
 SELECT @@SERVERNAME 
