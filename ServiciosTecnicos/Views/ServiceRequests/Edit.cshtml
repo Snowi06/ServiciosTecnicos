@@ -2,26 +2,38 @@
 
 @{
     ViewData["Title"] = "Editar Solicitud";
+    var isAdmin = Context.Session.GetString("Role") == "admin";
 }
 
 <h2>Editar Solicitud</h2>
 
-<form asp-action="Edit" method="post">
+<form asp-action="Edit" asp-route-id="@Model.RequestId" method="post">
     @Html.AntiForgeryToken()
-    
-    @* Campos ocultos necesarios *@
+
     <input type="hidden" name="RequestId" value="@Model.RequestId" />
     <input type="hidden" name="CreatedAt" value="@Model.CreatedAt.ToString("o")" />
-    
-    <div class="mb-3">
-        <label for="ClientId" class="form-label">Cliente</label>
-        <select name="ClientId" id="ClientId" class="form-select" required>
-            @foreach (var item in (SelectList)ViewBag.Clients)
-            {
-                <option value="@item.Value" selected="@(item.Selected ? "selected" : null)">@item.Text</option>
-            }
-        </select>
-    </div>
+
+    @if (isAdmin)
+    {
+        <div class="mb-3">
+            <label for="ClientId" class="form-label">Cliente</label>
+            <select name="ClientId" id="ClientId" class="form-select" required>
+                @foreach (var item in (SelectList)ViewBag.Clients)
+                {
+                    <option value="@item.Value" selected="@(item.Selected ? "selected" : null)">@item.Text</option>
+                }
+            </select>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" name="ClientId" value="@Model.ClientId" />
+
+        <div class="mb-3">
+            <label class="form-label">Cliente</label>
+            <input type="text" class="form-control" value="@ViewBag.CurrentClientName" readonly />
+        </div>
+    }
 
     <div class="mb-3">
         <label for="CategoryId" class="form-label">Categoría de Servicio</label>
@@ -48,16 +60,26 @@
         <input type="text" name="Address" id="Address" class="form-control" value="@Model.Address" required />
     </div>
 
-    <div class="mb-3">
-        <label for="RequestStatus" class="form-label">Estado</label>
-        <select name="RequestStatus" id="RequestStatus" class="form-select" required>
-            <option value="pending" selected="@(Model.RequestStatus == "pending" ? "selected" : null)">Pendiente</option>
-            <option value="assigned" selected="@(Model.RequestStatus == "assigned" ? "selected" : null)">Asignado</option>
-            <option value="in_progress" selected="@(Model.RequestStatus == "in_progress" ? "selected" : null)">En Progreso</option>
-            <option value="completed" selected="@(Model.RequestStatus == "completed" ? "selected" : null)">Completado</option>
-            <option value="cancelled" selected="@(Model.RequestStatus == "cancelled" ? "selected" : null)">Cancelado</option>
-        </select>
-    </div>
+    @if (isAdmin)
+    {
+        <div class="mb-3">
+            <label for="RequestStatus" class="form-label">Estado</label>
+            <select name="RequestStatus" id="RequestStatus" class="form-select" required>
+                <option value="pendiente" selected="@(Model.RequestStatus == "pendiente" || Model.RequestStatus == "pending" ? "selected" : null)">Pendiente</option>
+                <option value="asignado" selected="@(Model.RequestStatus == "asignado" || Model.RequestStatus == "assigned" || Model.RequestStatus == "in_progress" ? "selected" : null)">Asignado</option>
+                <option value="finalizado" selected="@(Model.RequestStatus == "finalizado" || Model.RequestStatus == "completed" ? "selected" : null)">Finalizado</option>
+            </select>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" name="RequestStatus" value="@Model.RequestStatus" />
+
+        <div class="mb-3">
+            <label class="form-label">Estado</label>
+            <input type="text" class="form-control" value="@Model.RequestStatus" readonly />
+        </div>
+    }
 
     <div class="mt-3">
         <button type="submit" class="btn btn-primary">Guardar Cambios</button>

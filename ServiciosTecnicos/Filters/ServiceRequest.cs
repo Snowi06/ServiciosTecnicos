@@ -8,7 +8,7 @@ namespace ServiciosTecnicos.Models
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
-        public string RequestStatus { get; set; } = "pending";
+        public string RequestStatus { get; set; } = "pendiente";
         public DateTime CreatedAt { get; set; }
 
         // Navigation properties

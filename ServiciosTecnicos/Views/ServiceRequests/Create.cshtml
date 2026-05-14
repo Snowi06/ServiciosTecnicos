@@ -9,16 +9,28 @@
 <form asp-action="Create" method="post">
     @Html.AntiForgeryToken()
     
-    <div class="mb-3">
-        <label for="ClientId" class="form-label">Cliente</label>
-        <select name="ClientId" id="ClientId" class="form-select" required>
-            <option value="">-- Seleccione un cliente --</option>
-            @foreach (var item in (SelectList)ViewBag.Clients)
-            {
-                <option value="@item.Value">@item.Text</option>
-            }
-        </select>
-    </div>
+    @if (ViewBag.CurrentClientId != null)
+    {
+        <div class="mb-3">
+            <label class="form-label">Cliente</label>
+            <input type="text" class="form-control" value="@ViewBag.CurrentClientName" readonly />
+            <input type="hidden" name="ClientId" value="@ViewBag.CurrentClientId" />
+        </div>
+    }
+    else
+    {
+        <div class="mb-3">
+            <label for="ClientId" class="form-label">Cliente</label>
+            <select name="ClientId" id="ClientId" class="form-select" required>
+                <option value="">-- Seleccione un cliente --</option>
+                @foreach (var item in (SelectList)ViewBag.Clients)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div>
+    }
+
 
     <div class="mb-3">
         <label for="CategoryId" class="form-label">Categoría de Servicio</label>

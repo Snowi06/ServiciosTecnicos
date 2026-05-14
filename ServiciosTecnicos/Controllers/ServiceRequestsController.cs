@@ -27,6 +27,11 @@ namespace ServiciosTecnicos.Controllers
         // TAD Lista Enlazada para historial de operaciones
         private static CustomLinkedList<string> _operationHistory = new CustomLinkedList<string>();
 
+        private const string StatusPending = "pendiente";
+        private const string StatusAssigned = "asignado";
+        private const string StatusFinished = "finalizado";
+
+
         public ServiceRequestsController(ApplicationDbContext context)
         {
             _context = context;
@@ -39,11 +44,16 @@ namespace ServiciosTecnicos.Controllers
         /// </summary>
         public async Task<IActionResult> Index()
         {
+            await RebuildPendingQueueAsync();
+
             // Obtener solicitudes de la BD
             var requestsArray = await _context.ServiceRequests
                 .Include(s => s.Client)
                     .ThenInclude(c => c.User)
                 .Include(s => s.Category)
+                .Include(s => s.RequestAssignment)
+                .ThenInclude(a => a.Technician)
+                    .ThenInclude(t => t.User)
                 .OrderByDescending(s => s.CreatedAt)
                 .ToArrayAsync(); // Usamos array, no List<>
 
@@ -53,26 +63,6 @@ namespace ServiciosTecnicos.Controllers
             {
                 customList.Add(request);
                 
-                // Si está pendiente, agregarlo a la cola FIFO
-                if (request.RequestStatus == "pending")
-                {
-                    // Solo agregar si no está ya en la cola
-                    bool alreadyInQueue = false;
-                    var queueArray = _pendingRequestsQueue.ToArray();
-                    foreach (var id in queueArray)
-                    {
-                        if (id == request.RequestId)
-                        {
-                            alreadyInQueue = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!alreadyInQueue)
-                    {
-                        _pendingRequestsQueue.Enqueue(request.RequestId);
-                    }
-                }
             }
 
             // Registrar operación en historial
@@ -90,36 +80,54 @@ namespace ServiciosTecnicos.Controllers
         /// Usa TAD CustomLinkedList para almacenar clientes
         /// NO usa List<> nativo
         /// </summary>
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            // Obtener clientes de la BD como array
-            var clientsArray = _context.Clients
-                .Include(c => c.User)
-                .Select(c => new
-                {
-                    c.ClientId,
-                    FullName = c.User.FirstName + " " + c.User.LastName
-                })
-                .ToArray(); // Array en lugar de List<>
+            var role = HttpContext.Session.GetString("Role");
+            var userId = HttpContext.Session.GetInt32("UserId");
 
-            // Almacenar en TAD Lista Enlazada Personalizada
-            var customClientList = new CustomLinkedList<dynamic>();
-            foreach (var client in clientsArray)
+            if (role == "client")
             {
-                customClientList.Add(client);
+                var currentClient = await _context.Clients
+                    .Include(c => c.User)
+                    .FirstOrDefaultAsync(c => c.UserId == userId);
+
+                if (currentClient == null)
+                {
+                    TempData["Error"] = "No se encontró el cliente asociado al usuario actual.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                ViewBag.CurrentClientId = currentClient.ClientId;
+                ViewBag.CurrentClientName = $"{currentClient.User.FirstName} {currentClient.User.LastName}";
+            }
+            else
+            {
+                var clientsArray = _context.Clients
+                    .Include(c => c.User)
+                    .Select(c => new
+                    {
+                        c.ClientId,
+                        FullName = c.User.FirstName + " " + c.User.LastName
+                    })
+                    .ToArray();
+
+                var customClientList = new CustomLinkedList<dynamic>();
+                foreach (var client in clientsArray)
+                {
+                    customClientList.Add(client);
+                }
+
+                ViewBag.Clients = new SelectList(customClientList.ToArray(), "ClientId", "FullName");
             }
 
-            // Convertir CustomLinkedList a array para SelectList
-            ViewBag.Clients = new SelectList(customClientList.ToArray(), "ClientId", "FullName");
-            
             var categoriesArray = _context.ServiceCategories.ToArray();
             ViewBag.Categories = new SelectList(categoriesArray, "CategoryId", "CategoryName");
 
-            // Registrar en historial
             _operationHistory.AddFirst($"Create form opened at {DateTime.Now:HH:mm:ss}");
 
             return View();
         }
+
 
         // POST: ServiceRequests/Create
         /// <summary>
@@ -136,18 +144,37 @@ namespace ServiciosTecnicos.Controllers
             ModelState.Remove("RequestStatus");
             ModelState.Remove("RequestAssignment");
             ModelState.Remove("Service");
-            
+
+            var role = HttpContext.Session.GetString("Role");
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (role == "client")
+            {
+                var currentClient = await _context.Clients
+                    .FirstOrDefaultAsync(c => c.UserId == userId);
+
+                if (currentClient == null)
+                {
+                    TempData["Error"] = "No se encontró el cliente asociado al usuario actual.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                serviceRequest.ClientId = currentClient.ClientId;
+            }
+
+
             if (ModelState.IsValid)
             {
                 serviceRequest.CreatedAt = DateTime.Now;
-                serviceRequest.RequestStatus = "pending";
+                serviceRequest.RequestStatus = StatusPending;
 
                 _context.Add(serviceRequest);
                 await _context.SaveChangesAsync();
 
                 // *** TAD COLA: Encolar en CustomQueue (FIFO) ***
-                _pendingRequestsQueue.Enqueue(serviceRequest.RequestId);
-                
+                await RebuildPendingQueueAsync();
+
+
                 // *** TAD HISTORIAL: Registrar operación ***
                 _operationHistory.AddFirst($"Created request #{serviceRequest.RequestId} at {DateTime.Now:HH:mm:ss}");
 
@@ -180,6 +207,132 @@ namespace ServiciosTecnicos.Controllers
             return View(serviceRequest);
         }
 
+        // GET: ServiceRequests/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var serviceRequest = await _context.ServiceRequests
+                .Include(s => s.Client)
+                    .ThenInclude(c => c.User)
+                .FirstOrDefaultAsync(s => s.RequestId == id);
+
+            if (serviceRequest == null)
+            {
+                return NotFound();
+            }
+
+            var role = HttpContext.Session.GetString("Role");
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            if (role == "client")
+            {
+                var currentClient = await _context.Clients
+                    .Include(c => c.User)
+                    .FirstOrDefaultAsync(c => c.UserId == userId);
+
+                if (currentClient == null || serviceRequest.ClientId != currentClient.ClientId)
+                {
+                    return RedirectToAction("AccessDenied", "Login");
+                }
+
+                ViewBag.CurrentClientName = $"{currentClient.User.FirstName} {currentClient.User.LastName}";
+            }
+            else
+            {
+                var clientsArray = _context.Clients
+                    .Include(c => c.User)
+                    .Select(c => new
+                    {
+                        c.ClientId,
+                        FullName = c.User.FirstName + " " + c.User.LastName
+                    })
+                    .ToArray();
+
+                ViewBag.Clients = new SelectList(clientsArray, "ClientId", "FullName", serviceRequest.ClientId);
+            }
+
+            var categoriesArray = _context.ServiceCategories.ToArray();
+            ViewBag.Categories = new SelectList(categoriesArray, "CategoryId", "CategoryName", serviceRequest.CategoryId);
+
+            return View(serviceRequest);
+        }
+
+        // POST: ServiceRequests/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, ServiceRequest serviceRequest)
+        {
+            if (id != serviceRequest.RequestId)
+            {
+                return NotFound();
+            }
+
+            ModelState.Remove("Client");
+            ModelState.Remove("Category");
+            ModelState.Remove("RequestAssignment");
+            ModelState.Remove("Service");
+
+            var role = HttpContext.Session.GetString("Role");
+            var userId = HttpContext.Session.GetInt32("UserId");
+
+            var existingRequest = await _context.ServiceRequests
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.RequestId == id);
+
+            if (existingRequest == null)
+            {
+                return NotFound();
+            }
+
+            if (role == "client")
+            {
+                var currentClient = await _context.Clients
+                    .Include(c => c.User)
+                    .FirstOrDefaultAsync(c => c.UserId == userId);
+
+                if (currentClient == null || existingRequest.ClientId != currentClient.ClientId)
+                {
+                    return RedirectToAction("AccessDenied", "Login");
+                }
+
+                serviceRequest.ClientId = existingRequest.ClientId;
+                serviceRequest.RequestStatus = existingRequest.RequestStatus;
+            }
+            else
+            {
+                serviceRequest.RequestStatus = serviceRequest.RequestStatus switch
+                {
+                    "pending" => StatusPending,
+                    "assigned" => StatusAssigned,
+                    "in_progress" => StatusAssigned,
+                    "completed" => StatusFinished,
+                    "pendiente" => StatusPending,
+                    "asignado" => StatusAssigned,
+                    "finalizado" => StatusFinished,
+                    _ => StatusPending
+                };
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var categoriesArray = _context.ServiceCategories.ToArray();
+                ViewBag.Categories = new SelectList(categoriesArray, "CategoryId", "CategoryName", serviceRequest.CategoryId);
+                return View(serviceRequest);
+            }
+
+            _context.Update(serviceRequest);
+            await _context.SaveChangesAsync();
+            await RebuildPendingQueueAsync();
+
+            TempData["Success"] = "Solicitud actualizada exitosamente";
+            return RedirectToAction(nameof(Index));
+        }
+
+
         // GET: ServiceRequests/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -204,7 +357,7 @@ namespace ServiciosTecnicos.Controllers
             }
 
             // Cargar técnicos disponibles si la solicitud está pendiente
-            if (serviceRequest.RequestStatus == "pending" && serviceRequest.RequestAssignment == null)
+            if (serviceRequest.RequestStatus == StatusPending && serviceRequest.RequestAssignment == null)
             {
                 var availableTechnicians = await _context.Technicians
                     .Include(t => t.User)
@@ -257,10 +410,22 @@ namespace ServiciosTecnicos.Controllers
             _context.RequestAssignments.Add(assignment);
 
             // Actualizar estado de la solicitud
-            serviceRequest.RequestStatus = "assigned";
+            serviceRequest.RequestStatus = StatusAssigned;
             _context.Update(serviceRequest);
 
+            var technician = await _context.Technicians.FindAsync(technicianId);
+            if (technician != null)
+            {
+                technician.Available = false;
+                _context.Update(technician);
+            }
+
+
             await _context.SaveChangesAsync();
+            await RebuildPendingQueueAsync();
+
+            _operationHistory.AddFirst($"Solicitud #{requestId} asignada al tecnico #{technicianId} a las {DateTime.Now:HH:mm:ss}");
+
 
             TempData["Success"] = "Técnico asignado exitosamente";
             return RedirectToAction(nameof(Details), new { id = requestId });
@@ -296,13 +461,13 @@ namespace ServiciosTecnicos.Controllers
                 RequestId = requestId,
                 TechnicianId = serviceRequest.RequestAssignment.TechnicianId,
                 StartDate = DateTime.Now,
-                FinalStatus = "in_progress"
+                FinalStatus = StatusAssigned
             };
 
             _context.Services.Add(service);
 
             // Actualizar estado de la solicitud
-            serviceRequest.RequestStatus = "in_progress";
+            serviceRequest.RequestStatus = StatusAssigned;
             _context.Update(serviceRequest);
 
             await _context.SaveChangesAsync();
@@ -310,6 +475,58 @@ namespace ServiciosTecnicos.Controllers
             TempData["Success"] = "Servicio iniciado exitosamente";
             return RedirectToAction(nameof(Details), new { id = requestId });
         }
+
+        // POST: ServiceRequests/FinishService
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FinishService(int requestId)
+        {
+            var serviceRequest = await _context.ServiceRequests
+                .Include(s => s.RequestAssignment)
+                .Include(s => s.Service)
+                .FirstOrDefaultAsync(s => s.RequestId == requestId);
+
+            if (serviceRequest == null || serviceRequest.RequestAssignment == null)
+            {
+                return NotFound();
+            }
+
+            var service = serviceRequest.Service;
+
+            if (service == null)
+            {
+                service = new Service
+                {
+                    RequestId = requestId,
+                    TechnicianId = serviceRequest.RequestAssignment.TechnicianId,
+                    StartDate = DateTime.Now
+                };
+
+                _context.Services.Add(service);
+            }
+
+            service.EndDate = DateTime.Now;
+            service.FinalStatus = StatusFinished;
+
+            serviceRequest.RequestStatus = StatusFinished;
+            _context.Update(serviceRequest);
+
+            var technician = await _context.Technicians.FindAsync(serviceRequest.RequestAssignment.TechnicianId);
+            if (technician != null)
+            {
+                technician.Available = true;
+                _context.Update(technician);
+            }
+
+            await _context.SaveChangesAsync();
+            await RebuildPendingQueueAsync();
+
+            _operationHistory.AddFirst($"Solicitud #{requestId} finalizada y enviada al historial a las {DateTime.Now:HH:mm:ss}");
+
+            TempData["Success"] = "Solicitud finalizada exitosamente y enviada al historial";
+            return RedirectToAction(nameof(Details), new { id = requestId });
+        }
+
 
         // GET: ServiceRequests/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -370,8 +587,11 @@ namespace ServiciosTecnicos.Controllers
         /// Desencola de CustomQueue (NO usa Queue<> nativo)
         /// Garantiza atención por orden de llegada
         /// </summary>
+
+        [AuthorizeSession("admin")]
         public async Task<IActionResult> AttendNext()
         {
+            await RebuildPendingQueueAsync();
             // Verificar si la cola está vacía usando TAD
             if (_pendingRequestsQueue.IsEmpty)
             {
@@ -423,8 +643,11 @@ namespace ServiciosTecnicos.Controllers
         /// <summary>
         /// Muestra el estado de la cola usando TAD CustomQueue
         /// </summary>
+        
+        [AuthorizeSession("admin")]
         public async Task<IActionResult> QueueStatus()
         {
+            await RebuildPendingQueueAsync();
             var queueIds = _pendingRequestsQueue.ToArray();
             
             // Crear lista enlazada personalizada con las solicitudes en cola
@@ -448,9 +671,26 @@ namespace ServiciosTecnicos.Controllers
             return View(queuedRequests.ToArray());
         }
 
+        private async Task RebuildPendingQueueAsync()
+        {
+            _pendingRequestsQueue.Clear();
+
+            var pendingRequestIds = await _context.ServiceRequests
+                .Where(s => s.RequestStatus == StatusPending || s.RequestStatus == "pending")
+                .OrderBy(s => s.CreatedAt)
+                .Select(s => s.RequestId)
+                .ToArrayAsync();
+
+            foreach (var id in pendingRequestIds)
+            {
+                _pendingRequestsQueue.Enqueue(id);
+            }
+        }
+
         private bool ServiceRequestExists(int id)
         {
             return _context.ServiceRequests.Any(e => e.RequestId == id);
         }
+
     }
 }

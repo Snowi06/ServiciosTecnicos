@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Solicitudes";
+    var isAdmin = Context.Session.GetString("Role") == "admin";
+}
 }
 
 <style>
@@ -27,9 +29,16 @@
         <a asp-action="Create" class="btn btn-success">
             <i class="bi bi-plus-circle"></i> Nueva solicitud
         </a>
-        <a asp-action="AttendNext" class="btn btn-danger">
-            <i class="bi bi-play-circle"></i> Atender siguiente
-        </a>
+
+        @if (isAdmin)
+        {
+            <a asp-action="AttendNext" class="btn btn-danger">
+                <i class="bi bi-play-circle"></i> Atender siguiente
+            </a>
+            <a asp-action="QueueStatus" class="btn btn-primary">
+                Ver cola
+            </a>
+        }
     </div>
 
     @if (TempData["Success"] != null)
@@ -56,6 +65,7 @@
                 <th>Descripción</th>
                 <th>Fecha</th>
                 <th>Estado</th>
+                <th>Técnico</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -68,27 +78,35 @@
                     <td>@item.Description</td>
                     <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                     <td>
-                        @if (item.RequestStatus == "pending")
+                        @if (item.RequestStatus == "pendiente" || item.RequestStatus == "pending")
                         {
                             <span class="badge bg-warning text-dark">Pendiente</span>
                         }
-                        else if (item.RequestStatus == "assigned")
+                        else if (item.RequestStatus == "asignado" || item.RequestStatus == "assigned" || item.RequestStatus == "in_progress")
                         {
                             <span class="badge bg-info">Asignado</span>
                         }
-                        else if (item.RequestStatus == "in_progress")
+                        else if (item.RequestStatus == "finalizado" || item.RequestStatus == "completed")
                         {
-                            <span class="badge bg-primary">En Progreso</span>
-                        }
-                        else if (item.RequestStatus == "completed")
-                        {
-                            <span class="badge bg-success">Completado</span>
+                            <span class="badge bg-success">Finalizado</span>
                         }
                         else
                         {
                             <span class="badge bg-secondary">@item.RequestStatus</span>
                         }
+
                     </td>
+                    <td>
+                        @if (item.RequestAssignment?.Technician?.User != null)
+                        {
+                            <span>@item.RequestAssignment.Technician.User.FirstName @item.RequestAssignment.Technician.User.LastName</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin asignar</span>
+                        }
+                    </td>
+
                     <td>
                         <a asp-action="Details" asp-route-id="@item.RequestId" class="btn btn-sm btn-info">Detalles</a>
                         <a asp-action="Edit" asp-route-id="@item.RequestId" class="btn btn-sm btn-warning">Editar</a>

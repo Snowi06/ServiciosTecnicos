@@ -7,7 +7,7 @@ namespace ServiciosTecnicos.Models
         public int TechnicianId { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public string FinalStatus { get; set; } = "completed";
+        public string FinalStatus { get; set; } = "Finalizado";
 
         // Navigation properties
         public ServiceRequest Request { get; set; } = null!;

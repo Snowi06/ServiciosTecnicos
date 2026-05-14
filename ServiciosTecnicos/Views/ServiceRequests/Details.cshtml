@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Detalles de Solicitud";
+
+    var isPending = Model.RequestStatus == "pendiente" || Model.RequestStatus == "pending";
+    var isAssigned = Model.RequestStatus == "asignado" || Model.RequestStatus == "assigned" || Model.RequestStatus == "in_progress";
+    var isFinished = Model.RequestStatus == "finalizado" || Model.RequestStatus == "completed";
 }
 
 <h2>Detalles de Solicitud</h2>
@@ -35,12 +39,23 @@
 
             <dt class="col-sm-4">Estado</dt>
             <dd class="col-sm-8">
-                <span class="badge bg-@(Model.RequestStatus == "pending" ? "warning" : Model.RequestStatus == "assigned" ? "info" : Model.RequestStatus == "in_progress" ? "primary" : Model.RequestStatus == "completed" ? "success" : "danger")">
-                    @(Model.RequestStatus == "pending" ? "Pendiente" : 
-                      Model.RequestStatus == "assigned" ? "Asignado" : 
-                      Model.RequestStatus == "in_progress" ? "En Progreso" : 
-                      Model.RequestStatus == "completed" ? "Completado" : "Cancelado")
-                </span>
+                @if (isPending)
+                {
+                    <span class="badge bg-warning text-dark">Pendiente</span>
+                }
+                else if (isAssigned)
+                {
+                    <span class="badge bg-info">Asignado</span>
+                }
+                else if (isFinished)
+                {
+                    <span class="badge bg-success">Finalizado</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">@Model.RequestStatus</span>
+                }
+
             </dd>
 
             <dt class="col-sm-4">Fecha de Creación</dt>
@@ -58,7 +73,7 @@
         </dl>
 
         @* Sección para asignar técnico si está pendiente *@
-        @if (Model.RequestStatus == "pending" && Model.RequestAssignment == null)
+        @if (isPending && Model.RequestAssignment == null)
         {
             <div class="card mt-4">
                 <div class="card-header bg-primary text-white">
@@ -91,19 +106,31 @@
         }
 
         @* Botón para iniciar servicio si está asignado *@
-        @if (Model.RequestStatus == "assigned" && Model.Service == null)
+        @if (isAssigned && !isFinished)
         {
             <div class="alert alert-info mt-4">
                 <h5>Solicitud Asignada</h5>
-                <p>Esta solicitud ha sido asignada al técnico. ¿Desea iniciar el servicio?</p>
-                <form asp-action="StartService" method="post" class="d-inline">
+                <p>Esta solicitud ya tiene técnico asignado. Puedes iniciar el servicio o marcarla como finalizada.</p>
+
+                @if (Model.Service == null)
+                {
+                    <form asp-action="StartService" method="post" class="d-inline">
+                        <input type="hidden" name="requestId" value="@Model.RequestId" />
+                        <button type="submit" class="btn btn-primary">
+                            Iniciar Servicio
+                        </button>
+                    </form>
+                }
+
+                <form asp-action="FinishService" method="post" class="d-inline">
                     <input type="hidden" name="requestId" value="@Model.RequestId" />
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-play-circle"></i> Iniciar Servicio
+                    <button type="submit" class="btn btn-success">
+                        Finalizar Solicitud
                     </button>
                 </form>
             </div>
         }
+
 
         <div class="mt-4">
             <a asp-action="Edit" asp-route-id="@Model.RequestId" class="btn btn-warning">Editar</a>
