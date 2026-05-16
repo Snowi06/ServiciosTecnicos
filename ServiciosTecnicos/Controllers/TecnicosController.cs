@@ -25,6 +25,32 @@ namespace ServiciosTecnicos.Controllers
             return View(tecnicos);
         }
 
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Technician tecnico)
+        {
+            ModelState.Remove("User");
+            ModelState.Remove("TechnicianSpecialties");
+            ModelState.Remove("RequestAssignments");
+            ModelState.Remove("Services");
+
+            if (!ModelState.IsValid)
+            {
+                return View(tecnico);
+            }
+
+            _context.Add(tecnico);
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -62,11 +88,44 @@ namespace ServiciosTecnicos.Controllers
             }
 
             _context.Update(tecnico);
+
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
 
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var tecnico = await _context.Technicians
+                .FirstOrDefaultAsync(m => m.TechnicianId == id);
+
+            if (tecnico == null)
+            {
+                return NotFound();
+            }
+
+            return View(tecnico);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var tecnico = await _context.Technicians.FindAsync(id);
+
+            if (tecnico != null)
+            {
+                _context.Technicians.Remove(tecnico);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
-
