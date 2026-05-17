@@ -1,12 +1,60 @@
-﻿@{
+﻿@model List<ServiciosTecnicos.Models.Rating>
+
+@{
     ViewData["Title"] = "Calificaciones";
 }
 
 <div class="container mt-5">
     <h2>Calificaciones</h2>
 
-    <div class="card p-4 shadow-sm">
-        <p>Aquí se mostrarán las calificaciones del sistema.</p>
-        <p class="text-muted">Próximamente disponible.</p>
-    </div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Servicio</th>
+                <th>Puntuación</th>
+                <th>Comentario</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            <style>
+                .stars {
+                    color: gold;
+                    font-size: 40px; 
+                    text-align: center;
+                }
+
+                    .stars span {
+                        display: inline-block;
+                    }
+            </style>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.ServiceId</td>
+                    <td class="stars">
+                        @{
+                            int score = r.Score;
+                        }
+
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            if (i <= score)
+                            {
+                                <span>★</span>
+                            }
+                            else
+                            {
+                                <span>☆</span>
+                            }
+                        }
+                    </td>
+                    <td>@r.Comment</td>
+                    <td>@r.CreatedAt</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Regresar</a>
+
 </div>

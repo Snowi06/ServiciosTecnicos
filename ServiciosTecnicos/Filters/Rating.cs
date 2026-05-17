@@ -6,9 +6,8 @@ namespace ServiciosTecnicos.Models
         public int ServiceId { get; set; }
         public int Score { get; set; }
         public string? Comment { get; set; }
-        public DateTime CreatedAt { get; set; }
-
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         // Navigation property
-        public Service Service { get; set; } = null!;
+        public Service? Service { get; set; }
     }
 }

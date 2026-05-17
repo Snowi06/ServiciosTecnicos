@@ -36,6 +36,15 @@
                         <td>@(service.StartDate?.ToString("dd/MM/yyyy HH:mm") ?? "Sin inicio")</td>
                         <td>@(service.EndDate?.ToString("dd/MM/yyyy HH:mm") ?? "Sin fecha")</td>
                         <td><span class="badge bg-success">Finalizado</span></td>
+
+                        <td>
+                        <a asp-controller="Calificaciones"
+                           asp-action="Create"
+                           asp-route-serviceId="@service.ServiceId"
+                           class="btn btn-sm btn-primary">
+                           Calificar
+                        </a>
+            </td>
                     </tr>
                 }
             </tbody>

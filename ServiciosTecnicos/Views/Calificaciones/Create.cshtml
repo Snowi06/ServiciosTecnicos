@@ -1,0 +1,83 @@
+﻿@model ServiciosTecnicos.Models.Rating
+
+<h2>Calificar Servicio</h2>
+
+<!-- MENSAJES -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+<form asp-action="Create" method="post">
+    <input type="hidden" asp-for="ServiceId" />
+    <input type="hidden" asp-for="Score" id="scoreInput" />
+
+    <!-- ⭐ ESTRELLAS -->
+    <div class="form-group">
+        <label>Calificación</label>
+        <style>
+            .stars-input {
+                font-size: 35px;
+                cursor: pointer;
+                text-align: center;
+                color: gold;
+            }
+
+                .stars-input span {
+                    transition: none; 
+                }
+        </style>
+        <div id="stars" class="stars-input">
+            <span data-value="1">☆</span>
+            <span data-value="2">☆</span>
+            <span data-value="3">☆</span>
+            <span data-value="4">☆</span>
+            <span data-value="5">☆</span>
+        </div>
+    </div>
+
+    <br />
+
+    <div class="form-group">
+        <label>Comentario</label>
+        <textarea asp-for="Comment" class="form-control"></textarea>
+    </div>
+
+    <br />
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a asp-controller="Historial" asp-action="Index" class="btn btn-secondary">Regresar</a>
+</form>
+
+<!-- ⭐ calificacion mediante estrellas -->
+<script>
+    const stars = document.querySelectorAll('#stars span');
+    const scoreInput = document.getElementById('scoreInput');
+
+    stars.forEach(star => {
+        star.addEventListener('click', function () {
+            const value = this.getAttribute('data-value');
+            scoreInput.value = value;
+
+            stars.forEach((s, index) => {
+                if (index < value) {
+                    s.textContent = '★';
+                } else {
+                    s.textContent = '☆';
+                }
+            });
+        });
+    });
+</script>
